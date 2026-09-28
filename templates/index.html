@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>EduGenie</title>
+
+    <link rel="stylesheet" href="/static/style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>EduGenie</h1>
+
+        <p>Google Gemini Powered Learning Assistant</p>
+
+        <label for="task">Choose Task:</label>
+
+        <select id="task">
+            <option value="Explain">Explain</option>
+            <option value="QnA">QnA</option>
+            <option value="Quiz">Quiz</option>
+            <option value="Summary">Summary</option>
+            <option value="Recommend Path">Recommend Path</option>
+        </select>
+
+        <textarea
+            id="question"
+            placeholder="Enter your question or topic..."
+        ></textarea>
+
+        <button onclick="askQuestion()">Submit</button>
+
+        <div id="result">
+
+            <h3>Result</h3>
+
+            <div id="answer">
+                Your answer will appear here...
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        async function askQuestion() {
+
+            const task =
+                document.getElementById("task").value;
+
+            const question =
+                document.getElementById("question").value;
+
+            if (!question.trim()) {
+
+                document.getElementById("answer").innerText =
+                    "Please enter a question or topic.";
+
+                return;
+            }
+
+            const prompt =
+                task + ": " + question;
+
+            document.getElementById("answer").innerText =
+                "Thinking...";
+
+            try {
+
+                const response = await fetch(
+                    "/ask?question=" +
+                    encodeURIComponent(prompt)
+                );
+
+                const data = await response.json();
+
+                if (data.answer) {
+
+                    document.getElementById("answer").innerHTML =
+                        marked.parse(data.answer);
+
+                } else {
+
+                    document.getElementById("answer").innerText =
+                        "No response received.";
+
+                }
+
+            } catch (error) {
+
+                document.getElementById("answer").innerText =
+                    "Connection error: " + error;
+
+            }
+
+        }
+
+    </script>
+
+</body>
+
+</html>
