@@ -40,3 +40,19 @@ EduGenie provides a step-by-step learning path from beginner to advanced level.
 
 ```bash
 py -m uvicorn main:app --reload
+## Exploring EduGenie
+
+### a. Asking Questions
+EduGenie allows students to ask questions and receive AI-generated answers in simple language.
+
+### b. Explanation of Any Topic
+It explains difficult topics clearly with definitions, main points, examples, and summaries.
+
+### c. Summarising Long Paragraphs
+It summarizes long content and presents the important ideas in a simple and clear format.
+
+### d. Generating Quizzes
+EduGenie generates multiple-choice quizzes with four options for each question.
+
+### e. Learning Recommendations
+It provides a step-by-step learning path from beginner to advanced level, including important topics, practice activities, and mini project ideas.
