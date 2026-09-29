@@ -1,0 +1,75 @@
+import os
+import json
+import re
+from fastapi import FastAPI, Request, Query
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from google import genai
+from dotenv import load_dotenv
+load_dotenv()
+app = FastAPI()
+
+templates = Jinja2Templates(directory="templates")
+
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
+
+def clean_json_block(text: str) -> str:
+    cleaned = re.sub(r"^```json\s*", "", text, flags=re.MULTILINE)
+    cleaned = re.sub(r"^```\s*", "", cleaned, flags=re.MULTILINE)
+    return cleaned.strip()
+
+@app.get("/")
+def read_root(request: Request):
+    return templates.TemplateResponse(request=request, name="index.html")
+
+@app.get("/ask")
+def process_task(task: str = Query(...), prompt: str = Query(...)):
+    if not client:
+        return {"error": "GEMINI_API_KEY environment variable-la set aagala."}
+
+    try:
+        if task == "Explain":
+            full_prompt = f"Provide a simple, easy-to-understand explanation for a beginner on: {prompt}"
+            response = client.models.generate_content(model="gemini-2.5-flash", contents=full_prompt)
+            return {"answer": response.text}
+
+        elif task == "QnA":
+            full_prompt = f"Answer the following academic question accurately: {prompt}"
+            response = client.models.generate_content(model="gemini-2.5-flash", contents=full_prompt)
+            return {"answer": response.text}
+
+        elif task == "Quiz":
+            full_prompt = f"""
+Generate exactly 3 multiple-choice questions (MCQs) for the topic below.
+Each question must have 4 options and 1 correct answer.
+Respond STRICTLY in valid JSON format like this:
+[
+  {{
+    "question": "Question text",
+    "options": ["Opt A", "Opt B", "Opt C", "Opt D"],
+    "answer": "Correct Option text"
+  }}
+]
+Topic: {prompt}
+"""
+            response = client.models.generate_content(model="gemini-2.5-flash", contents=full_prompt)
+            cleaned_json = clean_json_block(response.text)
+            parsed_quiz = json.loads(cleaned_json)
+            return {"quiz": parsed_quiz}
+
+        elif task == "Summary":
+            full_prompt = f"Summarize the following text into key revision points: {prompt}"
+            response = client.models.generate_content(model="gemini-2.5-flash", contents=full_prompt)
+            return {"answer": response.text}
+
+        elif task == "Recommend Path":
+            full_prompt = f"Generate a structured learning path (Beginner, Intermediate, Advanced) with resources for: {prompt}"
+            response = client.models.generate_content(model="gemini-2.5-flash", contents=full_prompt)
+            return {"answer": response.text}
+
+        else:
+            return {"error": "Invalid task selected."}
+
+    except Exception as e:
+        return {"error": str(e)}
